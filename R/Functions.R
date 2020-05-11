@@ -18,11 +18,11 @@ Compute_Surv_CI <- function(var_bin){
 }
 
 AICmod1<-function(sp, bdd){
-  aic1<-(glmer(B~1+(1|Site/Z.Classe),family = 'binomial',data=bdd[bdd$Species==sp,]))
-  aic2<-(glmer(B~scale(Tm_hiv)+(1|Site/Z.Classe),family = 'binomial',data=bdd[bdd$Species==sp,]))
-  aic3<-(glmer(B~scale(HT)+(1|Site/Z.Classe),family = 'binomial',data=bdd[bdd$Species==sp,]))
-  aic4<-(glmer(B~scale(Tm_hiv)+scale(HT)+(1|Site/Z.Classe),family = 'binomial',data=bdd[bdd$Species==sp,]))
-  aic5<-(glmer(B~scale(Tm_hiv)*scale(HT)+(1|Site/Z.Classe),family = 'binomial',data=bdd[bdd$Species==sp,]))
+  aic1<-(glmer(B ~ 1 + (1|Site/Z.Classe),family = 'binomial',data=bdd[bdd$Species==sp,]))
+  aic2<-(glmer(B ~ scale(Tm_hiv) + scale(UPI)+(1|Site/Z.Classe),family = 'binomial',data=bdd[bdd$Species==sp,]))
+  aic3<-(glmer(B ~ scale(HT) + scale(UPI) + (1|Site/Z.Classe),family = 'binomial',data=bdd[bdd$Species==sp,]))
+  aic4<-(glmer(B ~ scale(Tm_hiv) + scale(HT) + scale(UPI) + (1|Site/Z.Classe),family = 'binomial',data=bdd[bdd$Species==sp,]))
+  aic5<-(glmer(B ~ scale(Tm_hiv)*scale(HT) + scale(UPI) + (1|Site/Z.Classe),family = 'binomial',data=bdd[bdd$Species==sp,]))
   res_list<-list(aic1,aic2,aic3,aic4,aic5)
   return(res_list)
 }
@@ -54,7 +54,7 @@ Brows_Prob_CI <- function(bdd, vec_sp){
 Pred_CI <- function(res, newdat, CI_prob = 0.8){ # interval at 0.8 %
   z <- qnorm(CI_prob/2)
   
-  mm<-model.matrix(~Tm_hiv_CR*HT_CR,newdat)
+  mm<-model.matrix(~Tm_hiv_CR*HT_CR+UPI,newdat)
   y<-mm%*%fixef(res)
   pvar1 <- diag(mm %*% tcrossprod(vcov(res),mm))
   newdat2 <- data.frame(
@@ -71,11 +71,13 @@ Pred_Brows_Prob <- function(fglm, var_l, var_h, HT_val, df, sp, var = "Tm_hiv"){
   pred_CR <- (pred - mean(df[[var]]))/sd(df[[var]])
   HT <-  HT_val
   HT_CR <- (HT - mean(df$HT))/sd(df$HT)
+  UPI <- 0
   data_pred <- expand.grid(var= pred, HT = HT,
                            Site = df$Site[1000], Z_F = df$Z_F[1000], Species = sp)
   data_pred$var_CR <- (data_pred$var- mean(df[[var]]))/sd(df[[var]])
   data_pred$HT_CR <- (data_pred$HT - mean(df$HT))/sd(df$HT)
   names(data_pred)[c(1, 6)] <- c(var, paste0(var, "_CR"))
+  data_pred$UPI <- UPI
   df_out <- Pred_CI(fglm, data_pred)
   return(df_out)
 }
@@ -175,7 +177,7 @@ get_pred_ci_browsing_rate <- function(list_res, bdd, vec_sp){
 
 
 plot_browsing_rate <- function(df_ci, pred_ci){
-  ggplot(df_ci,aes(Tm_hiv,mean))+geom_point()+facet_grid(sp~.)+
+  p <- ggplot(df_ci,aes(Tm_hiv,mean))+geom_point()+facet_grid(sp~.)+
     geom_errorbar(aes(ymin=lwr,ymax=upr))+
     geom_line(data=pred_ci, aes(x = Tm_hiv, y = mean, col = HT),size=0.7)+
     scale_colour_manual(values=c('chocolate1','chocolate4'))+
@@ -185,7 +187,8 @@ plot_browsing_rate <- function(df_ci, pred_ci){
     xlab('Tm_wint (°C)')+ylab('Mean predicted browsing probability')+
     theme_bw()+theme(strip.background = element_rect(fill='grey95'))
   
-  ggsave("figures/BrowsingProbaALL.png", width = 14, height = 18, units = "cm")
+  ggsave("figures/BrowsingProbaALL.png", plot =p, width = 14, height = 18, units = "cm")
+  p
 }
 
 plot_browsing_rate_PA_NoGalliv <- function(df_ci, pred_ci){
@@ -223,6 +226,64 @@ run_analysis_growth <- function(bdd, vec_sp){
   return(list_res)
 }
 
+format_table_coef_growth <- function(list_res, vec_sp){
+  list_coefT <- lapply(list_res, FUN = function(x) summary(x)$coefficients) 
+  names(list_coefT) <- vec_sp
+  return(list_coefT)
+}
+
+format_table_coef_browse_rate_Rmarkdown <- function(list_coef, vec_sp){
+  
+library(kableExtra)
+library(dplyr)
+  for (sp in vec_sp){
+
+    cat("\n")
+    df <- data.frame(Predictor = row.names(list_coef[[sp]]), list_coef[[sp]])
+    rownames(df) <- NULL
+    names(df) <- c("Predictor",  "Estimate",   "Std_Error", "z_value",  "p.value")  
+    df <- df[-1, ]
+    res <- df %>% 
+      mutate(
+        p.value = scales::pvalue(p.value)
+      ) %>%
+      kable(, format = "pandoc",
+        caption = paste("Coefficient-Level Estimates for a Model Fitted to Estimate Seedling Browsing Probability Response for ", sp),
+        col.names = c("Predictor",  "Estimate",   "Std Error", "Z value",  "P value") ,
+        digits = c(0, 2, 3, 2, 3)
+      )
+    print(res)
+    cat("\n")
+  }
+}
+
+
+
+format_table_coef_growth_Rmarkdown <- function(list_coef, vec_sp){
+  
+  library(kableExtra)
+  library(dplyr)
+  for (sp in vec_sp){
+    
+    cat("\n")
+    df <- data.frame(Predictor = row.names(list_coef[[sp]]), list_coef[[sp]])
+    df <- df[, -4]
+    rownames(df) <- NULL
+    names(df) <- c("Predictor",  "Estimate",   "Std_Error", "t_value",  "p.value")  
+    df <- df[-1, ]
+    res <- df %>% 
+      mutate(
+        p.value = scales::pvalue(p.value)
+      ) %>%
+      kable(, format = "pandoc",
+            caption = paste("Coefficient-Level Estimates for a Model Fitted to Estimate Seedling Browsing Probability Response for ", sp),
+            col.names = c("Predictor",  "Estimate",   "Std Error", "t value",  "P value") ,
+            digits = c(0, 2, 3, 2, 3)
+      )
+    print(res)
+    cat("\n")
+  }
+}
 format_coef_growth <- function(list_res,vec_sp){
   vec_spl <- c('Abies','Acer','Fagus','Picea')
   names(vec_spl) <- c("ABAL", "ACPS", "FASY", "PIAB")
@@ -255,7 +316,7 @@ format_coef_growth <- function(list_res,vec_sp){
 
 
 plot_growth <- function(prfig2){
-  ggplot(prfig2,
+  p <- ggplot(prfig2,
          aes(Estimate,factor(Effet,levels=c('Height','Tm_spring:Browsing','Browsing','Tm_spring')),
              color=factor(Effet,levels=c('Tm_spring','Browsing','Tm_spring:Browsing','Height'))))+
     geom_point()+
@@ -265,7 +326,8 @@ plot_growth <- function(prfig2){
     theme(strip.background = element_rect(fill='grey95'))+labs(color='Effect')+
     scale_color_manual(values=c('darkorange','forestgreen','chocolate4','black'))
   
-  ggsave("figures/GrowthAllSp.png", width = 14, height = 18, units = "cm")
+  ggsave("figures/GrowthAllSp.png", plot =p, width = 14, height = 18, units = "cm")
+  return(p)
 }
 
 

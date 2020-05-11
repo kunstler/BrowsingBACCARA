@@ -12,10 +12,10 @@ require(dplyr)
 require(drake)
 library(lme4)
 
+dir.create("figures", showWarnings = FALSE)
+
 # source all files
 source(file.path("R", "Functions.R"))
-
-dir.create("figures", showWarnings = FALSE)
 
 ### plan
 
@@ -23,7 +23,7 @@ plan <- drake_plan(
    upi = read.table('data/UPI.csv',h=TRUE,sep=';', dec = ","),
    bdd = read.table('data/JdD_MB.csv',h=T,sep=';'),
    vec_sp = c("ABAL", "ACPS", "FASY", "PIAB"),
-   df_br = format_browsing_rate(bdd),
+   df_br = format_browsing_rate(bdd, upi),
    df_br_NG = format_browsing_rate_NoGalliv(df_br), 
    list_res_br = run_analysis_browsing_rate(df_br, vec_sp),
    coef_br = get_coef_browsing_rate(list_res_br, vec_sp),
@@ -42,10 +42,18 @@ plan <- drake_plan(
    list_res_gr = run_analysis_growth(df_gr, vec_sp),
    list_res_gr_NG = run_analysis_growth(df_gr_NG, vec_sp),
    data_coef_gr = format_coef_growth(list_res_gr, vec_sp),
+   table_coef_gr = format_table_coef_growth(list_res_gr, vec_sp),
    data_coef_gr_NG = format_coef_growth(list_res_gr_NG, vec_sp),
+   table_coef_gr_NG = format_table_coef_growth(list_res_gr_NG, vec_sp),
    plot_growth_all = plot_growth(data_coef_gr),
-   plot_growth_PA_NG = plot_growth_PA_SG(data_coef_gr_NG)
+   plot_growth_PA_NG = plot_growth_PA_SG(data_coef_gr_NG),
+   ms = rmarkdown::render(
+     knitr_in("ms.Rmd"),
+     output_file = file_out("ms.pdf"),
+     quiet = TRUE
+   )
 )
+
 
 # Make plan
 make(plan)
