@@ -85,7 +85,7 @@ format_browsing_rate <- function(bdd, upi){
   bdd$SpeciesUPI <- "Deciduous"
   bdd$SpeciesUPI[bdd$Species == "ABAL"] <- "Fir"
   bdd$SpeciesUPI[bdd$Species == "PIAB"] <- "Spruce"
-  
+  bdd <- left_join(bdd,upi, by =  c("SpeciesUPI" = "Species", "Site" = "Site"))  
   # bdd$Z.Classe<-NA # This is a bit problematic we don 't use the same classe of elevation between the growth analysis and the browsing rate analysis
   # bdd[bdd$Site%in%c('Belledonne','Vercors'),]$Z.Classe<-
   #   substr(bdd[bdd$Site%in%c('Belledonne','Vercors'),]$Plot,1,1)

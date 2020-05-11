@@ -20,7 +20,7 @@ dir.create("figures", showWarnings = FALSE)
 ### plan
 
 plan <- drake_plan(
-   upi = read.table('data/UPI.csv',h=TRUE,sep=';'),
+   upi = read.table('data/UPI.csv',h=TRUE,sep=';', dec = ","),
    bdd = read.table('data/JdD_MB.csv',h=T,sep=';'),
    vec_sp = c("ABAL", "ACPS", "FASY", "PIAB"),
    df_br = format_browsing_rate(bdd),
@@ -49,6 +49,7 @@ plan <- drake_plan(
 
 # Make plan
 make(plan)
+
 
 # plot plan
 config <- drake_config(plan)
