@@ -27,6 +27,16 @@ AICmod1<-function(sp, bdd){
   return(res_list)
 }
 
+AICmod1_NoUPI<-function(sp, bdd){
+  aic1<-(glmer(B ~ 1 + (1|Site/Z.Classe),family = 'binomial',data=bdd[bdd$Species==sp,]))
+  aic2<-(glmer(B ~ scale(Tm_hiv) + (1|Site/Z.Classe),family = 'binomial',data=bdd[bdd$Species==sp,]))
+  aic3<-(glmer(B ~ scale(HT) +  (1|Site/Z.Classe),family = 'binomial',data=bdd[bdd$Species==sp,]))
+  aic4<-(glmer(B ~ scale(Tm_hiv) + scale(HT) +  (1|Site/Z.Classe),family = 'binomial',data=bdd[bdd$Species==sp,]))
+  aic5<-(glmer(B ~ scale(Tm_hiv)*scale(HT)  + (1|Site/Z.Classe),family = 'binomial',data=bdd[bdd$Species==sp,]))
+  res_list<-list(aic1,aic2,aic3,aic4,aic5)
+  return(res_list)
+}
+
 ### CI on browsing rate
 fun_site_browsing_rate <- function(site_alt, df){
   tryCatch(Compute_Surv_CI(df[df$site_alt == site_alt,]$B),
@@ -119,6 +129,11 @@ format_browsing_rate_NoGalliv <- function(bdd){
 
 run_analysis_browsing_rate <- function(bdd, vec_sp){
   list_res <- lapply(vec_sp, AICmod1, bdd)
+  return(list_res)
+}
+
+run_analysis_browsing_rate_NoUPI <- function(bdd, vec_sp){
+  list_res <- lapply(vec_sp, AICmod1_NoUPI, bdd)
   return(list_res)
 }
 
@@ -258,6 +273,30 @@ library(dplyr)
   }
 }
 
+format_table_coef_browse_rate_Rmarkdown_UPI <- function(list_coef, vec_sp){
+  
+  library(kableExtra)
+  library(dplyr)
+  for (sp in vec_sp){
+    
+    cat("\n")
+    df <- data.frame(Predictor = row.names(list_coef[[sp]]), list_coef[[sp]])
+    rownames(df) <- NULL
+    names(df) <- c("Predictor",  "Estimate",   "Std_Error", "z_value",  "p.value")  
+    df <- df[-1, ]
+    res <- df %>% 
+      mutate(
+        p.value = scales::pvalue(p.value)
+      ) %>%
+      kable(, format = "pandoc",
+            caption = paste("Coefficient-Level Estimates for a Model Fitted to Estimate Seedling Browsing Probability Response including Browsing Pressure Index for ", sp),
+            col.names = c("Predictor",  "Estimate",   "Std Error", "Z value",  "P value") ,
+            digits = c(0, 2, 3, 2, 3)
+      )
+    print(res)
+    cat("\n")
+  }
+}
 
 
 format_table_coef_growth_Rmarkdown <- function(list_coef, vec_sp){

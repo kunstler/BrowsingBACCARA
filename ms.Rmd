@@ -15,9 +15,9 @@ author:
 abstract: |
     | **Abstract** 
     | 1.	In the northern hemisphere, the rise in ungulate populations and the expansion of their range in the last decades increased pressure on forest regeneration, which is already challenged by climate change. A better understanding of the interacting effects of browsing and climate change on tree species regeneration seems crucial to forecast the future dynamics of forest ecosystems.
-    | 2.	In this study, we investigate the variations of ungulate browsing intensity across a latitudinal and elevational gradient in seven sites across Europe to decipher the crossed effects of climate and ungulates on forest regeneration from a large latitudinal gradient (from 44° to 67°). At each site, we surveyed height growth and ungulates browsing impact of silver fir (Abies alba Mill.), sycamore maple (Acer pseudoplatanus L.), European beech (Fagus sylvatica L.) and Norway spruce (Pinus abies L. H. Karst) seedlings. 
+    | 2.	In this study, we investigate the variations of ungulate browsing intensity across a latitudinal and elevational gradient in seven sites across Europe to decipher the crossed effects of climate and ungulates on forest regeneration from a large latitudinal gradient (from 44$^{\circ}$ to 67$^{\circ}$). At each site, we surveyed height growth and ungulates browsing impact of silver fir (*Abies alba* Mill.), sycamore maple (*Acer pseudoplatanus* L.), European beech (*Fagus sylvatica* L.) and Norway spruce (*Picea abies* L. H. Karst) seedlings. 
     | 3. We found that for all species but Norway spruce – the less palatable one – browsing probability decreased with winter temperature. For all species, taller seedlings had a higher probability of being browsed than smaller ones, which might be due to a higher detectability by deer and the protective effect of snow cover. In addition, interactions between winter temperature and seedling height influenced browsing probability of silver fir and sycamore maple seedlings, the most two palatable species, potentially due to variation in snow cover protective effect. Finally, we found that browsing had a strong negative effect on the growth of all species but Norway spruce, whereas mean spring temperature had no or very weak effect on the growth of all species.
-    | 4.	Synthesis. At a continental scale, browsing is thus a stronger limiting constraint of seedling growth than climate, but browsing intensity can vary with climate. Our results highlight the importance of taking into account ungulate pressure on forest regeneration in forecasting models, since their browsing may interact with climate and lead to confounding effects.
+    | 4.	*Synthesis.* At a continental scale, browsing is thus a stronger limiting constraint of seedling growth than climate, but browsing intensity can vary with climate. Our results highlight the importance of taking into account ungulate pressure on forest regeneration in forecasting models, since their browsing may interact with climate and lead to confounding effects.
 keywords: | 
     | "Browsing blaba"
     | *Corresponding author*: Georges Kunstler, georges.kunstler@inrae.fr, +33 4 76 76 27 61,  2 Rue de la Papeterie, 38402 Saint-Martin-d'Heres
@@ -60,11 +60,21 @@ plot_BR
 
 
 
-```{r tables, results='asis'}
+```{r tablesBrowsingNoUPI, results='asis'}
 library(drake)
-loadd(table_coef_br)
 loadd(vec_sp)
-format_table_coef_browse_rate_Rmarkdown(table_coef_br, vec_sp)
+## RESULTS OF MODEL WHEN NOT ACCOUTING FOR BROWSING INDEX
+loadd(table_coef_br_NoUPI)
+format_table_coef_browse_rate_Rmarkdown(table_coef_br_NoUPI, vec_sp)
+
+```
+```{r tablesBrowsingUPI, results='asis'}
+library(drake)
+loadd(vec_sp)
+## RESULTS OF MODEL WHEN ACCOUNTING FOR BROWSING PRESSURE INDEX
+loadd(table_coef_br)
+format_table_coef_browse_rate_Rmarkdown_UPI(table_coef_br, vec_sp)
+
 ```
 
 
