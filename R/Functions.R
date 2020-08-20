@@ -192,7 +192,7 @@ plot_browsing_rate <- function(df_ci, pred_ci){
 }
 
 plot_browsing_rate_PA_NoGalliv <- function(df_ci, pred_ci){
-  ggplot(df_ci[df_ci$sp=='P. abies',],aes(Tm_hiv,mean))+geom_point()+facet_grid(sp~.)+
+  p <- ggplot(df_ci[df_ci$sp=='P. abies',],aes(Tm_hiv,mean))+geom_point()+facet_grid(sp~.)+
     geom_errorbar(aes(ymin=lwr,ymax=upr))+
     geom_line(data=pred_ci[pred_ci$sp=='P. abies',], aes(x = Tm_hiv, y = mean, col = HT),size=0.7)+
     scale_colour_manual(values=c('chocolate1','chocolate4'))+
@@ -202,7 +202,8 @@ plot_browsing_rate_PA_NoGalliv <- function(df_ci, pred_ci){
     xlab('Tm_wint (°C)')+ylab('Mean predicted browsing probability')+
     theme_bw()+theme(strip.background = element_rect(fill='grey95'))
   
-  ggsave("figures/BrowsingProba_PA_NoGalliv.png", width = 14, height = 11, units = "cm")
+  ggsave("figures/BrowsingProba_PA_NoGalliv.png", plot = p, width = 14, height = 11, units = "cm")
+  p
 }
 
 # Growth
@@ -334,7 +335,7 @@ plot_growth <- function(prfig2){
 # FIT SANS Gallivard
 
 plot_growth_PA_SG<- function(prfig2){
-  ggplot(prfig2[prfig2$Espece=='P. abies',],
+  p <- ggplot(prfig2[prfig2$Espece=='P. abies',],
          aes(Estimate,factor(Effet,levels=c('Height','Tm_spring:Browsing','Browsing','Tm_spring')),
              color=factor(Effet,levels=c('Tm_spring','Browsing','Tm_spring:Browsing','Height'))))+
     geom_point()+
@@ -343,5 +344,32 @@ plot_growth_PA_SG<- function(prfig2){
     theme(strip.background = element_rect(fill='grey95'))+labs(color='Effect')+
     scale_color_manual(values=c('darkorange','forestgreen','chocolate4','black'))
 
-  ggsave("figures/Growth_PA_NoGalliv.png", width = 15, height = 10, units = "cm")
+  ggsave("figures/Growth_PA_NoGalliv.png", plot = p, width = 15, height = 10, units = "cm")
+  p
 }
+
+
+### PLOT UPI
+
+plot_UPI <- function(bdd){
+  bdd$sp <- as.character(bdd$Species)
+  bdd$sp[bdd$sp %in% c("ACPS", "FASY")]<- "Deciduous"
+  bdd$sp[bdd$sp %in% c("ABAL")]<- "Fir"
+  bdd$sp[bdd$sp %in% c("PIAB")]<- "Spruce"
+  data_ung <- bdd %>% group_by(Site,sp) %>% summarise(UPI = mean(UPI))
+  Tmhiv_site<-aggregate(bdd$Tm_hiv,by=list(bdd$Site),mean)
+  names(Tmhiv_site)<-c('Site','Mean_winter_Tm')
+  data_ung <- left_join(data_ung, Tmhiv_site, by = "Site")
+  
+  p <- ggplot(data_ung,aes(Mean_winter_Tm,UPI,color=sp))+geom_point()+
+    theme_bw()+
+    scale_color_manual(values=c('orange','forestgreen','darkblue'))+
+    geom_smooth(method='lm',alpha=0.2,level=0.5,aes(fill=sp))+
+    scale_fill_manual(values=c('orange','forestgreen','darkblue'))+
+    xlab('Mean winter temperature (°C)')+ylab('Ungulate pressure index')+
+    labs(fill='Tree species',color='Tree species')
+  
+  ggsave("figures/UPI.png", plot = p, width = 15, height = 10, units = "cm")
+  p
+}
+

@@ -25,10 +25,11 @@ plan <- drake_plan(
    vec_sp = c("ABAL", "ACPS", "FASY", "PIAB"),
    df_br = format_browsing_rate(bdd, upi),
    df_br_NG = format_browsing_rate_NoGalliv(df_br), 
+   plot_upi = plot_UPI(df_br),
    list_res_br = run_analysis_browsing_rate(df_br, vec_sp),
    coef_br = get_coef_browsing_rate(list_res_br, vec_sp),
    table_coef_br = format_table_coef_br(list_res_br, vec_sp),
-   AIC_br = get_AIC_browsing_rate(list_res, vec_sp),
+   AIC_br = get_AIC_browsing_rate(list_res_br, vec_sp),
    DeltaAIC_br = get_deltaAIC_browsing_rate(AIC_br),
    BR_p_site = get_browsing_rate_per_site(df_br, vec_sp),
    pred_BR = get_pred_ci_browsing_rate(list_res_br, df_br, vec_sp),
@@ -64,5 +65,7 @@ config <- drake_config(plan)
 vis_drake_graph(config)
 
 ### TODO
+
+# - Update M&M and Results with new analyssis with UPI.
 
 
