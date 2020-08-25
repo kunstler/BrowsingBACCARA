@@ -32,7 +32,7 @@ colorlinks: true
 knitr::opts_chunk$set(tidy=FALSE, warning=FALSE, message=FALSE,
                       error=FALSE, fig.cap="")
 require(bibtex)
-options(citation_format = "text", max.names=2, digits=1, width = 400)
+options(citation_format = "text", max.names=2, width = 400)
 require(pander)
 ```
 
@@ -40,13 +40,18 @@ require(pander)
 
 TODO  [@Boulanger-2015]. $^{\circ}$
 
+
+# Materiels and Methods 
+
+
+
 # Figures and Tables main text
 
 ```{r MapSite, echo=FALSE, fig.cap="Map of the European latitudinal gradient of study sites (a), each site including an elevation gradient (b).", out.width = '100%'}
 knitr::include_graphics("figures/Map_Sites.png")
 ```
 
-
+\newpage
 
 
 
@@ -57,6 +62,7 @@ plot_BR
 ```
 
 
+\newpage
 
 
 
@@ -65,16 +71,20 @@ library(drake)
 loadd(vec_sp)
 ## RESULTS OF MODEL WHEN NOT ACCOUTING FOR BROWSING INDEX
 loadd(table_coef_br_NoUPI)
-format_table_coef_browse_rate_Rmarkdown(table_coef_br_NoUPI, vec_sp)
+legend_cap <- "Coefficient-Level Estimates for a model fitted to estimate seedling browsing probability response per species"
+format_table_coef_browse_rate_Rmarkdown_All(table_coef_br_NoUPI, vec_sp, legend_cap)
 
 ```
+
+\pagebreak
+
 ```{r tablesBrowsingUPI, results='asis'}
 library(drake)
 loadd(vec_sp)
 ## RESULTS OF MODEL WHEN ACCOUNTING FOR BROWSING PRESSURE INDEX
 loadd(table_coef_br)
-format_table_coef_browse_rate_Rmarkdown_UPI(table_coef_br, vec_sp)
-
+legend_cap <- "Coefficient-Level Estimates for a model fitted to estimate seedling browsing probability response including ungulate pressure index per species"
+format_table_coef_browse_rate_Rmarkdown_All(table_coef_br, vec_sp, legend_cap)
 ```
 
 
@@ -91,7 +101,8 @@ plot_growth_all
 library(drake)
 loadd(table_coef_gr)
 loadd(vec_sp)
-format_table_coef_growth_Rmarkdown(table_coef_gr, vec_sp)
+legend_cap <- "Coefficient-Level estimates for a model fitted to estimate seedling growth response per species"
+format_table_coef_growth_Rmarkdown_All(table_coef_gr, vec_sp, legend_cap)
 ```
 
 
@@ -104,10 +115,45 @@ loadd(plot_BR_PA_NG)
 plot_BR_PA_NG
 ```
 
+
+\newpage
+
+
+
+```{r tablesBrowsingNoUPI_NG, results='asis'}
+library(drake)
+loadd(vec_sp)
+## RESULTS OF MODEL WHEN NOT ACCOUTING FOR BROWSING INDEX
+loadd(table_coef_br_NG_NoUPI)
+format_table_coef_browse_rate_Rmarkdown(table_coef_br_NG_NoUPI, vec_sp[4])
+
+```
+
+\pagebreak
+
+```{r tablesBrowsingUPI_NG, results='asis'}
+library(drake)
+loadd(vec_sp)
+## RESULTS OF MODEL WHEN ACCOUNTING FOR BROWSING PRESSURE INDEX
+loadd(table_coef_br_NG)
+format_table_coef_browse_rate_Rmarkdown_UPI(table_coef_br_NG, vec_sp[4])
+
+```
+
+
+
+
 ```{r plotGrNG, fig.cap = "UPI."}
 library(drake)
 loadd(plot_growth_PA_NG)
 plot_growth_PA_NG
+```
+
+```{r tableGNG, results='asis'}
+library(drake)
+loadd(table_coef_gr_NG)
+loadd(vec_sp)
+format_table_coef_growth_Rmarkdown(table_coef_gr_NG, vec_sp[4])
 ```
 
 

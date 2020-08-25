@@ -248,12 +248,51 @@ format_table_coef_growth <- function(list_res, vec_sp){
   return(list_coefT)
 }
 
-format_table_coef_browse_rate_Rmarkdown <- function(list_coef, vec_sp){
+format_table_coef_browse_rate_Rmarkdown_All <- function(list_coef, vec_sp, legend_cap){
   
 library(kableExtra)
 library(dplyr)
-  for (sp in vec_sp){
+  
+  sp <- vec_sp[1]
+  
+  df <- data.frame(Predictor = row.names(list_coef[[sp]]), list_coef[[sp]])
+  rownames(df) <- NULL
+  df[, 4] <- NULL
+  names(df) <- c("Predictor",  "Estimate",   "Std_Error",  "p.value")  
+  df <- df[-1, ]
+  res_t <- df %>% 
+    mutate(
+      p.value = scales::pvalue(p.value)
+    )
+  for (sp in vec_sp[-1]){
 
+
+    df <- data.frame(Predictor = row.names(list_coef[[sp]]), list_coef[[sp]])
+    rownames(df) <- NULL
+    df[, 4] <- NULL
+    names(df) <- c("Predictor",  "Estimate",   "Std_Error",  "p.value")  
+    df <- df[-1, ]
+    res <- df %>% 
+      mutate(p.value = scales::pvalue(p.value)) 
+res_t <- rbind(res_t, res)
+  }
+  indexx <- rep(nrow(res), length.out = length(vec_sp))
+  names(indexx) <- vec_sp
+  tabb <-   kable(res_t, format = "latex",
+          caption = legend_cap,
+          col.names = c("Predictor",  "Estimate",   "Std Error", "P value") ,
+          digits = c(4, 4, 4,  4))  %>% pack_rows(index = indexx) 
+  print(tabb)
+}
+
+
+
+format_table_coef_browse_rate_Rmarkdown <- function(list_coef, vec_sp){
+  
+  library(kableExtra)
+  library(dplyr)
+  for (sp in vec_sp){
+    
     cat("\n")
     df <- data.frame(Predictor = row.names(list_coef[[sp]]), list_coef[[sp]])
     rownames(df) <- NULL
@@ -264,14 +303,16 @@ library(dplyr)
         p.value = scales::pvalue(p.value)
       ) %>%
       kable(, format = "pandoc",
-        caption = paste("Coefficient-Level Estimates for a Model Fitted to Estimate Seedling Browsing Probability Response for ", sp),
-        col.names = c("Predictor",  "Estimate",   "Std Error", "Z value",  "P value") ,
-        digits = c(0, 2, 3, 2, 3)
+            caption = paste("Coefficient-Level Estimates for a model fitted to estimate seedling browsing probability response for ", sp),
+            col.names = c("Predictor",  "Estimate",   "Std Error", "Z value",  "P value") ,
+            digits = c(0, 3, 3, 3, 3)
       )
     print(res)
     cat("\n")
   }
 }
+
+
 
 format_table_coef_browse_rate_Rmarkdown_UPI <- function(list_coef, vec_sp){
   
@@ -289,7 +330,7 @@ format_table_coef_browse_rate_Rmarkdown_UPI <- function(list_coef, vec_sp){
         p.value = scales::pvalue(p.value)
       ) %>%
       kable(, format = "pandoc",
-            caption = paste("Coefficient-Level Estimates for a Model Fitted to Estimate Seedling Browsing Probability Response including Browsing Pressure Index for ", sp),
+            caption = paste("Coefficient-Level Estimates for a model fitted to estimate seedling browsing probability response including ungulate pressure index for ", sp),
             col.names = c("Predictor",  "Estimate",   "Std Error", "Z value",  "P value") ,
             digits = c(0, 2, 3, 2, 3)
       )
@@ -297,6 +338,43 @@ format_table_coef_browse_rate_Rmarkdown_UPI <- function(list_coef, vec_sp){
     cat("\n")
   }
 }
+
+format_table_coef_growth_Rmarkdown_All <- function(list_coef, vec_sp, legend_cap){
+  
+  library(kableExtra)
+  library(dplyr)
+  sp <- vec_sp[1]
+  df <- data.frame(Predictor = row.names(list_coef[[sp]]), list_coef[[sp]])
+  df <- df[, -4]
+  df <- df[, -4]
+  rownames(df) <- NULL
+  names(df) <- c("Predictor",  "Estimate",   "Std_Error",  "p.value")  
+  df <- df[-1, ]
+  res_t <- df %>% mutate(
+    p.value = scales::pvalue(p.value)) 
+  
+  for (sp in vec_sp[-1]){
+    
+    df <- data.frame(Predictor = row.names(list_coef[[sp]]), list_coef[[sp]])
+    df <- df[, -4]
+    df <- df[, -4]
+    rownames(df) <- NULL
+    names(df) <- c("Predictor",  "Estimate",   "Std_Error",  "p.value")  
+    df <- df[-1, ]
+    res <- df %>% mutate(
+        p.value = scales::pvalue(p.value)) 
+    res_t <- rbind(res_t, res)
+  }
+  
+  indexx <- rep(nrow(res), length.out = length(vec_sp))
+  names(indexx) <- vec_sp
+  tabb <-   kable(res_t, format = "latex",
+                  caption = legend_cap,
+                  col.names = c("Predictor",  "Estimate",   "Std Error", "P value") ,
+                  digits = c(4, 4, 4,  4))  %>% pack_rows(index = indexx) 
+  print(tabb)
+  }
+
 
 
 format_table_coef_growth_Rmarkdown <- function(list_coef, vec_sp){
@@ -316,7 +394,7 @@ format_table_coef_growth_Rmarkdown <- function(list_coef, vec_sp){
         p.value = scales::pvalue(p.value)
       ) %>%
       kable(, format = "pandoc",
-            caption = paste("Coefficient-Level Estimates for a Model Fitted to Estimate Seedling Browsing Probability Response for ", sp),
+            caption = paste("Coefficient-Level estimates for a model fitted to estimate seedling growth response for ", sp),
             col.names = c("Predictor",  "Estimate",   "Std Error", "t value",  "P value") ,
             digits = c(0, 2, 3, 2, 3)
       )
@@ -324,6 +402,8 @@ format_table_coef_growth_Rmarkdown <- function(list_coef, vec_sp){
     cat("\n")
   }
 }
+
+
 format_coef_growth <- function(list_res,vec_sp){
   vec_spl <- c('Abies','Acer','Fagus','Picea')
   names(vec_spl) <- c("ABAL", "ACPS", "FASY", "PIAB")
