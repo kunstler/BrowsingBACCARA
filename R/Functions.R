@@ -202,7 +202,7 @@ plot_browsing_rate <- function(df_ci, pred_ci){
     xlab('Tm_wint (°C)')+ylab('Mean predicted browsing probability')+
     theme_bw()+theme(strip.background = element_rect(fill='grey95'))
   
-  ggsave("figures/BrowsingProbaALL.png", plot =p, width = 14, height = 18, units = "cm")
+  ggsave("figures/BrowsingProbaALL.png", plot =p,  units = "cm")
   p
 }
 
@@ -446,7 +446,7 @@ plot_growth <- function(prfig2){
     theme(strip.background = element_rect(fill='grey95'))+labs(color='Effect')+
     scale_color_manual(values=c('darkorange','forestgreen','chocolate4','black'))
   
-  ggsave("figures/GrowthAllSp.png", plot =p, width = 14, height = 18, units = "cm")
+  ggsave("figures/GrowthAllSp.png", plot =p, units = "cm")
   return(p)
 }
 
